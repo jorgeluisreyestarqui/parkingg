@@ -476,6 +476,7 @@ showReportes() {
 }
 
 showDashboard() {
+    document.getElementById('loginScreen').classList.remove('active');
     document.getElementById('dashboardScreen').classList.add('active');
     document.getElementById('reportesScreen').classList.remove('active');
     this.updateUserInfo();
