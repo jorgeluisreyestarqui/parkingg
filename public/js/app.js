@@ -277,10 +277,216 @@ actualizarFiltrosReporte(tipoReporte) {
 }
 
 // 📥 EXPORTAR REPORTE
-exportarReporte() {
-    this.showNotification('Función de exportación en desarrollo', 'info');
+async exportarReporte() {
+    const tipoReporte = document.getElementById('tipoReporte').value;
+    const fechaInicio = document.getElementById('fechaInicio').value;
+    const fechaFin = document.getElementById('fechaFin').value;
+    const fechaEspecifica = document.getElementById('fechaEspecifica').value;
+
+    // Validar que hay datos para exportar
+    const resultados = document.getElementById('resultadosReporte').innerHTML;
+    if (!resultados || resultados.includes('Error al generar')) {
+        this.showNotification('Primero genere un reporte para exportar', 'warning');
+        return;
+    }
+
+    try {
+        // Mostrar opciones de exportación
+        const formato = await this.mostrarOpcionesExportacion();
+        if (!formato) return;
+
+        // Construir URL de exportación
+        let url = `/reportes/exportar/${tipoReporte}/${formato}?`;
+        
+        switch (tipoReporte) {
+            case 'ingresos':
+            case 'vehiculos':
+                if (fechaInicio) url += `fechaInicio=${fechaInicio}&`;
+                if (fechaFin) url += `fechaFin=${fechaFin}&`;
+                break;
+            case 'ocupacion':
+                if (fechaEspecifica) url += `fecha=${fechaEspecifica}&`;
+                break;
+        }
+
+        // Descargar archivo
+        console.log('URL para exportar:', url); // ← Debug
+        this.descargarArchivo(url);
+
+    } catch (error) {
+        console.error('Error exportando reporte:', error);
+        this.showNotification('Error al exportar el reporte', 'error');
+    }
 }
 
+// 🎪 MOSTRAR OPCIONES DE EXPORTACIÓN
+mostrarOpcionesExportacion() {
+    return new Promise((resolve) => {
+        // Crear modal de opciones
+        const modalHTML = `
+            <div id="modalExportacion" class="modal active">
+                <div class="modal-content" style="max-width: 400px;">
+                    <div class="modal-header">
+                        <h3>📥 Exportar Reporte</h3>
+                        <span class="modal-close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <p>Seleccione el formato de exportación:</p>
+                        <div class="export-options">
+                            <button class="export-btn excel" data-format="excel">
+                                📊 Excel (.xlsx)
+                            </button>
+                            <button class="export-btn pdf" data-format="pdf">
+                                📄 PDF (.pdf)
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="cancelarExportacion" class="btn secondary">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Agregar al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Configurar event listeners
+        const modal = document.getElementById('modalExportacion');
+        const closeBtn = modal.querySelector('.modal-close');
+        const cancelBtn = document.getElementById('cancelarExportacion');
+        const exportBtns = modal.querySelectorAll('.export-btn');
+
+        const cleanup = () => {
+            modal.remove();
+            document.removeEventListener('keydown', handleEscape);
+        };
+
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                cleanup();
+                resolve(null);
+            }
+        };
+
+        closeBtn.addEventListener('click', () => {
+            cleanup();
+            resolve(null);
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            cleanup();
+            resolve(null);
+        });
+
+        exportBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const formato = btn.dataset.format;
+                cleanup();
+                resolve(formato);
+            });
+        });
+
+        document.addEventListener('keydown', handleEscape);
+
+        // Cerrar al hacer click fuera
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                cleanup();
+                resolve(null);
+            }
+        });
+    });
+}
+
+// ⬇️ DESCARGAR ARCHIVO
+async descargarArchivo(url) {
+    try {
+        console.log('URL recibida:', url); // ← debug
+        this.showNotification('Preparando descarga...', 'info');
+        
+        // Construir URL correctamente -
+        
+        let downloadUrl = url;
+        if (url.startsWith('/api/')) {
+            downloadUrl = url; 
+        } else {
+            downloadUrl = `/api${url}`;
+        }
+        
+        
+        const response = await fetch(`http://localhost:3000${downloadUrl}`, {
+            headers: {
+                'Authorization': `Bearer ${this.token}`
+            }
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                this.showNotification('Sesión expirada. Por favor, inicie sesión nuevamente', 'error');
+                this.logout();
+                return;
+            }
+            
+            if (response.status === 404) {
+                this.showNotification('Ruta de exportación no encontrada', 'error');
+                return;
+            }
+            
+            throw new Error(`Error en la descarga: ${response.status} ${response.statusText}`);
+        }
+
+        // Obtener el blob (archivo)
+        const blob = await response.blob();
+        
+        // Verificar que el blob no esté vacío
+        if (blob.size === 0) {
+            throw new Error('El archivo está vacío');
+        }
+        
+        // Crear URL temporal para descarga
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        // Crear enlace de descarga
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        
+        // Obtener nombre del archivo del header Content-Disposition o generar uno
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `reporte-${Date.now()}`;
+        
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+            if (filenameMatch) {
+                filename = filenameMatch[1];
+            }
+        }
+        
+        // Agregar extensión basada en el tipo de contenido
+        const contentType = response.headers.get('Content-Type');
+        if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && !filename.endsWith('.xlsx')) {
+            filename += '.xlsx';
+        } else if (contentType === 'application/pdf' && !filename.endsWith('.pdf')) {
+            filename += '.pdf';
+        }
+        
+        link.setAttribute('download', filename);
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Liberar memoria
+        window.URL.revokeObjectURL(blobUrl);
+        
+        this.showNotification('Reporte exportado exitosamente', 'success');
+        
+    } catch (error) {
+        console.error('Error descargando archivo:', error);
+        this.showNotification(error.message || 'Error al descargar el archivo', 'error');
+    }
+}
     // 🔐 MANEJO DE LOGIN
     async handleLogin() {
         const form = document.getElementById('loginForm');

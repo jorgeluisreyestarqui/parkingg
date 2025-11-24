@@ -702,4 +702,54 @@ body {
         font-size: 0.8em;
     }
 }
+
+/* 📥 ESTILOS PARA EXPORTACIÓN */
+.export-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.export-btn {
+    padding: 20px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-weight: bold;
+}
+
+.export-btn.excel {
+    border-color: #217346;
+    color: #217346;
+}
+
+.export-btn.excel:hover {
+    background: #217346;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(33, 115, 70, 0.3);
+}
+
+.export-btn.pdf {
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+.export-btn.pdf:hover {
+    background: #e74c3c;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+}
+
+.export-btn i {
+    font-size: 1.5em;
+    display: block;
+    margin-bottom: 8px;
+}
+
 }
