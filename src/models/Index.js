@@ -3,6 +3,8 @@ const Vehiculo = require('./Vehiculo');
 const Registro = require('./Registro');
 const Espacio = require('./Espacio');
 const Tarifa = require('./Tarifa');
+const Configuracion = require('./configuracion');
+const CampoFormulario = require('./CampoFormulario');
 
 // Relaciones
 User.hasMany(Registro, { foreignKey: 'usuarioId', as: 'registros' });
@@ -18,5 +20,7 @@ module.exports = {
     Vehiculo,
     Registro,
     Espacio,
-    Tarifa
+    Tarifa,
+    Configuracion,
+    CampoFormulario
 };

@@ -6,13 +6,14 @@ require('dotenv').config();
 
 // 2. 🔗 IMPORTAR CONFIGURACIONES Y MODELOS
 const { testConnection } = require('./config/database');
-const { User, Vehiculo, Espacio, Tarifa, Registro } = require('./models');
+const { User, Vehiculo, Espacio, Tarifa, Registro, Configuracion, CampoFormulario } = require('./models'); // 👈 MODELOS NUEVOS
 
 // 3. 🛣️ IMPORTAR RUTAS
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
 const vehiculoRoutes = require('./routes/vehiculos');
 const reporteRoutes = require('./routes/reportes');
+const configuracionRoutes = require('./routes/configuracion'); // 👈 NUEVA RUTA
 
 // 4. 🎪 OBTENER RUTA ABSOLUTA AL DIRECTORIO PUBLIC
 const publicPath = path.join(process.cwd(), 'public');
@@ -79,6 +80,30 @@ const initializeServer = async () => {
       console.log('💰 Tarifas por defecto creadas');
     }
 
+    // 🆕 INICIALIZAR CONFIGURACIONES DEL SISTEMA
+    const configCount = await Configuracion.count();
+    if (configCount === 0) {
+      await Configuracion.bulkCreate([
+        { clave: 'espacios_totales', valor: '20', tipo: 'numero', descripcion: 'Número total de espacios de parqueo' },
+        { clave: 'horario_apertura', valor: '06:00', tipo: 'hora', descripcion: 'Hora de apertura del parqueo' },
+        { clave: 'horario_cierre', valor: '22:00', tipo: 'hora', descripcion: 'Hora de cierre del parqueo' },
+        { clave: 'tolerancia_minutos', valor: '15', tipo: 'numero', descripcion: 'Tolerancia en minutos para cobro' }
+      ]);
+      console.log('⚙️  Configuraciones del sistema inicializadas');
+    }
+
+    // 🆕 INICIALIZAR CAMPOS DEL FORMULARIO
+    const camposCount = await CampoFormulario.count();
+    if (camposCount === 0) {
+      await CampoFormulario.bulkCreate([
+        { nombre: 'placa', etiqueta: 'Placa del Vehículo', tipo: 'texto', obligatorio: true, orden: 1 },
+        { nombre: 'marca', etiqueta: 'Marca', tipo: 'texto', obligatorio: true, orden: 2 },
+        { nombre: 'modelo', etiqueta: 'Modelo', tipo: 'texto', obligatorio: false, orden: 3 },
+        { nombre: 'color', etiqueta: 'Color', tipo: 'texto', obligatorio: false, orden: 4 }
+      ]);
+      console.log('📝 Campos del formulario inicializados');
+    }
+
     console.log('✅ Base de datos y datos inicializados correctamente');
     
     // 5. 🏗️ AHORA SÍ CREAR LA APLICACIÓN EXPRESS
@@ -97,7 +122,8 @@ const initializeServer = async () => {
     app.use('/api/dashboard', dashboardRoutes);
     app.use('/api/vehiculos', vehiculoRoutes);
     app.use('/api/reportes', reporteRoutes);
-
+    app.use('/api/configuracion', configuracionRoutes); // 👈 NUEVA RUTA
+    
     // 7. 📊 RUTAS DE API EXISTENTES
     app.get('/api/test', (req, res) => {
       res.json({ 
@@ -110,12 +136,14 @@ const initializeServer = async () => {
       try {
         const userCount = await User.count();
         const espacioCount = await Espacio.count();
+        const configCount = await Configuracion.count();
         
         res.json({
           status: 'healthy',
           database: 'connected',
           users: userCount,
           espacios: espacioCount,
+          configuraciones: configCount,
           timestamp: new Date().toISOString()
         });
       } catch (error) {
@@ -167,12 +195,17 @@ const initializeServer = async () => {
       console.log(`   Archivo JS: http://localhost:${PORT}/js/app.js`);
       console.log(`   API Test: http://localhost:${PORT}/api/test`);
       
-      
       console.log('\n📋 ENDPOINTS DE REPORTES:');
       console.log(`   GET  http://localhost:${PORT}/api/reportes/ingresos`);
       console.log(`   GET  http://localhost:${PORT}/api/reportes/ocupacion`);
       console.log(`   GET  http://localhost:${PORT}/api/reportes/vehiculos`);
-      
+
+      console.log('\n🆕 ENDPOINTS DE CONFIGURACIÓN (SOLO ADMIN):');
+      console.log(`   GET  http://localhost:${PORT}/api/configuracion/sistema`);
+      console.log(`   PUT  http://localhost:${PORT}/api/configuracion/sistema`);
+      console.log(`   GET  http://localhost:${PORT}/api/configuracion/campos`);
+      console.log(`   POST http://localhost:${PORT}/api/configuracion/campos`);
+
       console.log('\n👤 CUENTAS DE DEMO:');
       console.log('   Administrador: admin@parqueito.com / admin123');
       console.log('   Empleado: empleado@parqueito.com / empleado123');

@@ -1,6 +1,7 @@
 const express = require('express');
 const reporteController = require('../controllers/reporteController');
 const { authMiddleware } = require('../middleware/auth');
+const { esAdmin } = require('../middleware/roles');
 const exportador = require('./exportaciones');
 
 const router = express.Router();
@@ -8,13 +9,13 @@ const router = express.Router();
 // 🔒 TODAS LAS RUTAS REQUIEREN AUTENTICACIÓN
 router.use(authMiddleware);
 
-// 📅 REPORTES
-router.get('/ingresos', reporteController.getReporteIngresos);
-router.get('/ocupacion', reporteController.getReporteOcupacion);
-router.get('/vehiculos', reporteController.getReporteVehiculos);
+// 📅 REPORTES (admin)
+router.get('/ingresos', esAdmin, reporteController.getReporteIngresos);
+router.get('/ocupacion', esAdmin, reporteController.getReporteOcupacion);  
+router.get('/vehiculos', esAdmin, reporteController.getReporteVehiculos); 
 
 // 📥 RUTAS DE EXPORTACIÓN
-router.get('/exportar/:tipo/:formato', async (req, res) => {
+router.get('/exportar/:tipo/:formato', esAdmin, async (req, res) => {
     try {
         const { tipo, formato } = req.params;
         const { fechaInicio, fechaFin, fecha } = req.query;

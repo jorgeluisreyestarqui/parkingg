@@ -17,6 +17,66 @@ class ParqueitoApp {
         }
     }
 
+    // 🔐 VERIFICAR ROL Y PERMISOS
+esAdmin() {
+    return this.user && this.user.rol === 'admin';
+}
+
+esEmpleado() {
+    return this.user && this.user.rol === 'empleado';
+}
+
+// 🎯 ACTUALIZAR INTERFAZ SEGÚN ROL
+actualizarInterfazPorRol() {
+    if (!this.user) return;
+
+    const esAdmin = this.esAdmin();
+    
+    // Mostrar/ocultar elementos según el rol
+    this.mostrarOcultarElemento('btnVerReportes', esAdmin);
+    this.mostrarOcultarElemento('configuracionSection', esAdmin);
+    
+    // Actualizar textos de información de usuario
+    this.actualizarInfoUsuario();
+}
+
+// 👤 ACTUALIZAR INFORMACIÓN DE USUARIO
+actualizarInfoUsuario() {
+    if (this.user) {
+        const userInfo = document.getElementById('userInfo');
+        const userInfoReportes = document.getElementById('userInfoReportes');
+        
+        const textoUsuario = `${this.user.nombre} (${this.user.rol})`;
+        
+        if (userInfo) userInfo.textContent = textoUsuario;
+        if (userInfoReportes) userInfoReportes.textContent = textoUsuario;
+    }
+}
+
+// 🎪 MOSTRAR/OCULTAR ELEMENTOS
+mostrarOcultarElemento(elementId, mostrar) {
+    const elemento = document.getElementById(elementId);
+    if (elemento) {
+        elemento.style.display = mostrar ? 'block' : 'none';
+    }
+}
+
+// ⚙️ MOSTRAR CONFIGURACIÓN (SOLO ADMIN)
+showConfiguracion() {
+    if (!this.esAdmin()) {
+        this.showNotification('No tiene permisos de administrador', 'error');
+        return;
+    }
+    
+    document.getElementById('dashboardScreen').classList.remove('active');
+    document.getElementById('reportesScreen').classList.remove('active');
+    document.getElementById('configuracionScreen').classList.add('active');
+    
+    this.cargarConfiguracion();
+    this.cargarCamposFormulario();
+    this.cargarTarifas();
+}
+
     // 🔐 MANEJO DE AUTENTICACIÓN
     checkAuth() {
         if (this.token) {
@@ -61,6 +121,52 @@ class ParqueitoApp {
             throw error;
         }
     }
+
+    // 📝 CARGAR CAMPOS DEL FORMULARIO
+async cargarCamposFormulario() {
+    try {
+        const data = await this.apiCall('/configuracion/campos');
+        
+        if (data.success) {
+            this.mostrarCamposFormulario(data.data);
+        }
+    } catch (error) {
+        console.error('Error cargando campos:', error);
+    }
+}
+
+// 💰 CARGAR TARIFAS
+async cargarTarifas() {
+    try {
+        const data = await this.apiCall('/configuracion/tarifas');
+        
+        if (data.success) {
+            this.mostrarTarifas(data.data);
+        }
+    } catch (error) {
+        console.error('Error cargando tarifas:', error);
+    }
+}
+
+// 🏢 ACTUALIZAR FORMULARIO DE CONFIGURACIÓN
+actualizarFormularioConfiguracion(configuraciones) {
+    // Espacios totales
+    const espaciosInput = document.getElementById('espaciosTotales');
+    if (espaciosInput && configuraciones.espacios_totales) {
+        espaciosInput.value = configuraciones.espacios_totales.valor;
+    }
+    
+    // Horarios
+    const aperturaInput = document.getElementById('horarioApertura');
+    const cierreInput = document.getElementById('horarioCierre');
+    
+    if (aperturaInput && configuraciones.horario_apertura) {
+        aperturaInput.value = configuraciones.horario_apertura.valor;
+    }
+    if (cierreInput && configuraciones.horario_cierre) {
+        cierreInput.value = configuraciones.horario_cierre.valor;
+    }
+}
 
     // 👤 PERFIL DE USUARIO
     async loadUserProfile() {
@@ -178,6 +284,29 @@ class ParqueitoApp {
         document.getElementById('logoutBtn').addEventListener('click', () => {
             this.logout();
         });
+
+        // ⚙️ CONFIGURACIÓN
+document.getElementById('btnConfiguracion')?.addEventListener('click', () => {
+    this.showConfiguracion();
+});
+
+document.getElementById('volverDashboardConfigBtn')?.addEventListener('click', () => {
+    this.showDashboard();
+});
+
+document.getElementById('logoutBtnConfiguracion')?.addEventListener('click', () => {
+    this.logout();
+});
+
+// Guardar configuración general
+document.getElementById('guardarConfigGeneral')?.addEventListener('click', () => {
+    this.guardarConfiguracionGeneral();
+});
+
+// Agregar nuevo campo
+document.getElementById('agregarCampoBtn')?.addEventListener('click', () => {
+    this.mostrarModalAgregarCampo();
+});
 
         // 🚗 ACCIONES RÁPIDAS
         document.getElementById('btnRegistrarEntrada').addEventListener('click', () => {

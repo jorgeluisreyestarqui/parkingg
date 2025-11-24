@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const vehiculoController = require('../controllers/vehiculoController');
 const { authMiddleware } = require('../middleware/auth');
+const { esAdminOEmpleado } = require('../middleware/roles');
 
 const router = express.Router();
 
@@ -36,11 +37,11 @@ const salidaValidation = [
 // 🔒 TODAS LAS RUTAS REQUIEREN AUTENTICACIÓN
 router.use(authMiddleware);
 
-// 🚗 RUTAS DE VEHÍCULOS
-router.post('/entrada', entradaValidation, vehiculoController.registrarEntrada);
-router.post('/salida', salidaValidation, vehiculoController.registrarSalida);
-router.get('/activos', vehiculoController.listarActivos);
-router.get('/buscar/:placa', vehiculoController.buscarPorPlaca);
-router.get('/historial', vehiculoController.obtenerHistorial);
+// 🚗 RUTAS DE VEHÍCULOS admin y empleados
+router.post('/entrada', esAdminOEmpleado, entradaValidation, vehiculoController.registrarEntrada);
+router.post('/salida', esAdminOEmpleado, salidaValidation, vehiculoController.registrarSalida);
+router.get('/activos', esAdminOEmpleado, vehiculoController.listarActivos);
+router.get('/buscar/:placa', esAdminOEmpleado, vehiculoController.buscarPorPlaca);
+router.get('/historial', esAdminOEmpleado, vehiculoController.obtenerHistorial);
 
 module.exports = router;

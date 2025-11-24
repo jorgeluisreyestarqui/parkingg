@@ -12,7 +12,7 @@
     <div id="loginScreen" class="screen active">
         <div class="login-container">
             <div class="login-header">
-                <h1>🏢 Parqueito</h1>
+                <h1>🏢 Parking</h1>
                 <p>Sistema de Gestión de Parqueo</p>
             </div>
             <form id="loginForm" class="login-form">
@@ -49,6 +49,10 @@
                 <span class="user-info" id="userInfo">Cargando...</span>
             </div>
             <div class="header-right">
+                <!-- 🆕 BOTÓN CONFIGURACIÓN (SOLO VISIBLE PARA ADMIN) -->
+                <button id="btnConfiguracion" class="btn btn-secondary" style="display: none;">
+                    <i class="fas fa-cog"></i> Configuración
+                </button>
                 <button id="logoutBtn" class="btn btn-secondary">
                     <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                 </button>
@@ -132,9 +136,10 @@
                             <button id="btnBuscarVehiculo" class="btn btn-info">
                                 <i class="fas fa-search"></i> Buscar Vehículo
                             </button>
-                            <button id="btnVerReportes" class="btn btn-info">
-    <i class="fas fa-chart-line"></i> Ver Reportes
-</button>
+                            <!-- 🆕 BOTÓN REPORTES (SOLO ADMIN) -->
+                            <button id="btnVerReportes" class="btn btn-info" style="display: none;">
+                                <i class="fas fa-chart-line"></i> Ver Reportes
+                            </button>
                         </div>
 
                         <!-- FORMULARIO DE BÚSQUEDA -->
@@ -318,6 +323,83 @@
             </section>
         </main>
     </div>
+
+    <!-- 🆕 SECCIÓN DE CONFIGURACIÓN -->
+    <div id="configuracionScreen" class="screen">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-cog"></i> Configuración - Parqueito</h1>
+                <span class="user-info" id="userInfoConfiguracion">Cargando...</span>
+            </div>
+            <div class="header-right">
+                <button id="volverDashboardConfigBtn" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                </button>
+                <button id="logoutBtnConfiguracion" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="config-grid">
+                <!-- 🏢 CONFIGURACIÓN GENERAL -->
+                <section class="config-section">
+                    <div class="config-header">
+                        <h3><i class="fas fa-building"></i> Configuración General</h3>
+                    </div>
+                    <div class="config-content">
+                        <div class="config-form">
+                            <div class="form-group">
+                                <label for="espaciosTotales">Espacios Totales:</label>
+                                <input type="number" id="espaciosTotales" class="form-control" min="1" max="1000">
+                            </div>
+                            <div class="form-group">
+                                <label for="horarioApertura">Horario Apertura:</label>
+                                <input type="time" id="horarioApertura" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="horarioCierre">Horario Cierre:</label>
+                                <input type="time" id="horarioCierre" class="form-control">
+                            </div>
+                            <button id="guardarConfigGeneral" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Configuración
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 📝 CAMPOS DEL FORMULARIO -->
+                <section class="config-section">
+                    <div class="config-header">
+                        <h3><i class="fas fa-edit"></i> Campos del Formulario</h3>
+                    </div>
+                    <div class="config-content">
+                        <div id="camposFormularioList" class="campos-list">
+                            <div class="loading">Cargando campos...</div>
+                        </div>
+                        <button id="agregarCampoBtn" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Agregar Campo
+                        </button>
+                    </div>
+                </section>
+
+                <!-- 💰 TARIFAS -->
+                <section class="config-section">
+                    <div class="config-header">
+                        <h3><i class="fas fa-money-bill-wave"></i> Tarifas</h3>
+                    </div>
+                    <div class="config-content">
+                        <div id="tarifasList" class="tarifas-list">
+                            <div class="loading">Cargando tarifas...</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
     
     <!-- 🚗 MODAL REGISTRAR ENTRADA -->
     <div id="modalEntrada" class="modal">
@@ -366,6 +448,46 @@
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="cancelarSalida">Cancelar</button>
                     <button type="submit" class="btn btn-warning">Registrar Salida</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 🆕 MODAL AGREGAR CAMPO -->
+    <div id="modalAgregarCampo" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus"></i> Agregar Campo al Formulario</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="formAgregarCampo" class="modal-form">
+                <div class="form-group">
+                    <label for="nombreCampo">Nombre del Campo:</label>
+                    <input type="text" id="nombreCampo" name="nombre" required placeholder="Ej: telefono">
+                </div>
+                <div class="form-group">
+                    <label for="etiquetaCampo">Etiqueta:</label>
+                    <input type="text" id="etiquetaCampo" name="etiqueta" required placeholder="Ej: Teléfono">
+                </div>
+                <div class="form-group">
+                    <label for="tipoCampo">Tipo:</label>
+                    <select id="tipoCampo" name="tipo" class="form-control">
+                        <option value="texto">Texto</option>
+                        <option value="numero">Número</option>
+                        <option value="select">Lista Desplegable</option>
+                        <option value="color">Color</option>
+                        <option value="fecha">Fecha</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="obligatorioCampo" name="obligatorio">
+                        Campo Obligatorio
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelarAgregarCampo">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Agregar Campo</button>
                 </div>
             </form>
         </div>
