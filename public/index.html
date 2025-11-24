@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏢 parking - Sistema de Gestión</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 🔐 LOGIN SCREEN -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>🏢 Parqueito</h1>
+                <p>Sistema de Gestión de Parqueo</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Contraseña</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </button>
+            </form>
+            <div class="demo-accounts">
+                <h3>Cuentas de Demo:</h3>
+                <div class="account">
+                    <strong>Administrador:</strong> admin@parqueito.com / admin123
+                </div>
+                <div class="account">
+                    <strong>Empleado:</strong> empleado@parqueito.com / empleado123
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📊 DASHBOARD SCREEN -->
+    <div id="dashboardScreen" class="screen">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-parking"></i> Parqueito</h1>
+                <span class="user-info" id="userInfo">Cargando...</span>
+            </div>
+            <div class="header-right">
+                <button id="logoutBtn" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <!-- 🎯 MÉTRICAS PRINCIPALES -->
+            <section class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon">
+                        <i class="fas fa-parking"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>Espacios Totales</h3>
+                        <div class="metric-value" id="metric-total">0</div>
+                    </div>
+                </div>
+
+                <div class="metric-card available">
+                    <div class="metric-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>Disponibles</h3>
+                        <div class="metric-value" id="metric-available">0</div>
+                    </div>
+                </div>
+
+                <div class="metric-card occupied">
+                    <div class="metric-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>Ocupados</h3>
+                        <div class="metric-value" id="metric-occupied">0</div>
+                    </div>
+                </div>
+
+                <div class="metric-card income">
+                    <div class="metric-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>Ingresos Hoy</h3>
+                        <div class="metric-value" id="metric-income">$0.00</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 📊 CONTENIDO PRINCIPAL -->
+            <div class="content-grid">
+                <!-- 🚗 VEHÍCULOS ACTIVOS -->
+                <section class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-car-side"></i> Vehículos en el Parqueo</h3>
+                        <span class="badge" id="activeCount">0</span>
+                    </div>
+                    <div class="card-content">
+                        <div id="activeVehiclesList" class="vehicles-list">
+                            <div class="loading">Cargando vehículos...</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ⚡ ACCIONES RÁPIDAS -->
+                <section class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="quick-actions">
+                            <button id="btnRegistrarEntrada" class="btn btn-success">
+                                <i class="fas fa-sign-in-alt"></i> Registrar Entrada
+                            </button>
+                            <button id="btnRegistrarSalida" class="btn btn-warning">
+                                <i class="fas fa-sign-out-alt"></i> Registrar Salida
+                            </button>
+                            <button id="btnBuscarVehiculo" class="btn btn-info">
+                                <i class="fas fa-search"></i> Buscar Vehículo
+                            </button>
+                            <button id="btnVerReportes" class="btn btn-info">
+    <i class="fas fa-chart-line"></i> Ver Reportes
+</button>
+                        </div>
+
+                        <!-- FORMULARIO DE BÚSQUEDA -->
+                        <div class="search-container" id="searchContainer" style="display: none;">
+                            <input type="text" id="searchInput" placeholder="Ingrese placa del vehículo...">
+                            <button id="btnSearch" class="btn btn-primary">Buscar</button>
+                            <div id="searchResults" class="search-results"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 📈 ESTADÍSTICAS -->
+                <section class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-bar"></i> Estadísticas del Día</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">Registros Hoy:</span>
+                                <span class="stat-value" id="stat-registros">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Ocupación:</span>
+                                <span class="stat-value" id="stat-ocupacion">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Tiempo Promedio:</span>
+                                <span class="stat-value" id="stat-tiempo">0h</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 🏆 VEHÍCULOS FRECUENTES -->
+                <section class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-star"></i> Vehículos Frecuentes</h3>
+                    </div>
+                    <div class="card-content">
+                        <div id="frequentVehiclesList" class="frequent-list">
+                            <div class="loading">Cargando...</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+                <!-- 📊 SECCIÓN DE REPORTES (oculta inicialmente) -->
+    <div id="reportesScreen" class="screen">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-chart-line"></i> Reportes - Parqueito</h1>
+                <span class="user-info" id="userInfoReportes">Cargando...</span>
+            </div>
+            <div class="header-right">
+                <button id="volverDashboardBtn" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                </button>
+                <button id="logoutBtnReportes" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- 🎯 FILTROS DE REPORTES -->
+            <section class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-filter"></i> Filtros de Reportes</h3>
+                </div>
+                <div class="card-content">
+                    <div class="filtros-reportes">
+                        <div class="filtro-group">
+                            <label for="tipoReporte">Tipo de Reporte:</label>
+                            <select id="tipoReporte" class="filtro-select">
+                                <option value="ingresos">📊 Reporte de Ingresos</option>
+                                <option value="ocupacion">🅿️ Reporte de Ocupación</option>
+                                <option value="vehiculos">🚗 Reporte de Vehículos</option>
+                            </select>
+                        </div>
+
+                        <div class="filtro-group">
+                            <label for="fechaInicio">Fecha Inicio:</label>
+                            <input type="date" id="fechaInicio" class="filtro-input">
+                        </div>
+
+                        <div class="filtro-group">
+                            <label for="fechaFin">Fecha Fin:</label>
+                            <input type="date" id="fechaFin" class="filtro-input">
+                        </div>
+
+                        <div class="filtro-group">
+                            <label for="fechaEspecifica">Fecha Específica (Ocupación):</label>
+                            <input type="date" id="fechaEspecifica" class="filtro-input">
+                        </div>
+
+                        <button id="generarReporteBtn" class="btn btn-primary">
+                            <i class="fas fa-chart-bar"></i> Generar Reporte
+                        </button>
+
+                        <button id="exportarReporteBtn" class="btn btn-success" style="display: none;">
+                            <i class="fas fa-download"></i> Exportar Reporte
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 📈 RESULTADOS DEL REPORTE -->
+            <section class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-bar"></i> Resultados del Reporte</h3>
+                    <span class="badge" id="resultadosCount">0</span>
+                </div>
+                <div class="card-content">
+                    <div id="loadingReporte" class="loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Generando reporte...
+                    </div>
+                    
+                    <div id="resultadosReporte">
+                        <div class="empty-state">
+                            <i class="fas fa-chart-bar fa-3x"></i>
+                            <h3>Selecciona filtros y genera un reporte</h3>
+                            <p>Los reportes te ayudarán a analizar el rendimiento de tu parqueo</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 📊 ESTADÍSTICAS RÁPIDAS -->
+            <section class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-tachometer-alt"></i> Estadísticas Rápidas</h3>
+                </div>
+                <div class="card-content">
+                    <div class="stats-grid" id="estadisticasRapidas">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h4>Ingresos del Mes</h4>
+                                <div class="stat-value" id="ingresosMes">$0.00</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h4>Vehículos Este Mes</h4>
+                                <div class="stat-value" id="vehiculosMes">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h4>Vehículo Más Frecuente</h4>
+                                <div class="stat-value" id="vehiculoFrecuente">-</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h4>Hora Pico</h4>
+                                <div class="stat-value" id="horaPico">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- 🚗 MODAL REGISTRAR ENTRADA -->
+    <div id="modalEntrada" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-sign-in-alt"></i> Registrar Entrada</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="formEntrada" class="modal-form">
+                <div class="form-group">
+                    <label for="placa">Placa del Vehículo</label>
+                    <input type="text" id="placa" name="placa" required placeholder="Ej: ABC123">
+                </div>
+                <div class="form-group">
+                    <label for="marca">Marca</label>
+                    <input type="text" id="marca" name="marca" required placeholder="Ej: Toyota">
+                </div>
+                <div class="form-group">
+                    <label for="modelo">Modelo</label>
+                    <input type="text" id="modelo" name="modelo" required placeholder="Ej: Corolla">
+                </div>
+                <div class="form-group">
+                    <label for="color">Color</label>
+                    <input type="text" id="color" name="color" required placeholder="Ej: Rojo">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelarEntrada">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Registrar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 🚗 MODAL REGISTRAR SALIDA -->
+    <div id="modalSalida" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-sign-out-alt"></i> Registrar Salida</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="formSalida" class="modal-form">
+                <div class="form-group">
+                    <label for="placaSalida">Placa del Vehículo</label>
+                    <input type="text" id="placaSalida" name="placa" required placeholder="Ingrese la placa">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelarSalida">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">Registrar Salida</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 📱 NOTIFICACIONES -->
+    <div id="notifications" class="notifications"></div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

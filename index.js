@@ -1,0 +1,5 @@
+// Punto de entrada de la aplicación
+require('./src/server');
+
+//token
+//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBwYXJxdWVpdG8uY29tIiwicm9sIjoiYWRtaW4iLCJub21icmUiOiJBZG1pbmlzdHJhZG9yIFByaW5jaXBhbCIsImlhdCI6MTc2Mzk1MzUxNywiZXhwIjoxNzY0NTU4MzE3fQ.PVOvOCdTHQm-_TC7c1MVNc-7OhQJy0JXbukk2RXBSWY
