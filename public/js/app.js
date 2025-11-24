@@ -7,75 +7,74 @@ class ParqueitoApp {
         this.init();
     }
 
-    init() {
-        this.checkAuth();
-        this.setupEventListeners();
+    //  ADMIN O EMPLEADO
+    esAdmin() {
+        return this.user && this.user.rol === 'admin';
+    }
+
+    esEmpleado() {
+        return this.user && this.user.rol === 'empleado';
+    }
+
+    // 🎯 ACTUALIZAR INTERFAZ SEGÚN ROL
+    actualizarInterfazPorRol() {
+        if (!this.user) return;
+
+        const esAdmin = this.esAdmin();
         
-        if (this.token) {
-            this.loadDashboard();
-            this.startAutoRefresh();
+        console.log('🔄 Actualizando interfaz para rol:', this.user.rol);
+        
+        // Mostrar/ocultar elementos según el rol
+        this.mostrarOcultarElemento('btnConfiguracion', esAdmin);
+        this.mostrarOcultarElemento('btnVerReportes', esAdmin);
+        
+        // Actualizar textos de información de usuario
+        this.actualizarInfoUsuario();
+    }
+
+    // 👤 ACTUALIZAR INFORMACIÓN DE USUARIO
+    actualizarInfoUsuario() {
+        if (this.user) {
+            const userInfo = document.getElementById('userInfo');
+            const userInfoReportes = document.getElementById('userInfoReportes');
+            const userInfoConfiguracion = document.getElementById('userInfoConfiguracion');
+            
+            const textoUsuario = `${this.user.nombre} (${this.user.rol})`;
+            
+            if (userInfo) userInfo.textContent = textoUsuario;
+            if (userInfoReportes) userInfoReportes.textContent = textoUsuario;
+            if (userInfoConfiguracion) userInfoConfiguracion.textContent = textoUsuario;
         }
     }
 
-    // 🔐 VERIFICAR ROL Y PERMISOS
-esAdmin() {
-    return this.user && this.user.rol === 'admin';
-}
+    // 🎪 MOSTRAR/OCULTAR ELEMENTOS
+    mostrarOcultarElemento(elementId, mostrar) {
+        const elemento = document.getElementById(elementId);
+        if (elemento) {
+            elemento.style.display = mostrar ? 'block' : 'none';
+            console.log(`🎯 ${mostrar ? 'Mostrando' : 'Ocultando'} elemento: ${elementId}`);
+        } else {
+            console.warn(`⚠️ Elemento no encontrado: ${elementId}`);
+        }
+    }
 
-esEmpleado() {
-    return this.user && this.user.rol === 'empleado';
-}
+init() {
+    this.checkAuth();
+    this.setupEventListeners();
 
-// 🎯 ACTUALIZAR INTERFAZ SEGÚN ROL
-actualizarInterfazPorRol() {
-    if (!this.user) return;
+    // Ensure configuracionScreen is hidden on init
+    const configScreen = document.getElementById('configuracionScreen');
+    if (configScreen) {
+        configScreen.classList.remove('active');
+    }
 
-    const esAdmin = this.esAdmin();
-    
-    // Mostrar/ocultar elementos según el rol
-    this.mostrarOcultarElemento('btnVerReportes', esAdmin);
-    this.mostrarOcultarElemento('configuracionSection', esAdmin);
-    
-    // Actualizar textos de información de usuario
-    this.actualizarInfoUsuario();
-}
-
-// 👤 ACTUALIZAR INFORMACIÓN DE USUARIO
-actualizarInfoUsuario() {
-    if (this.user) {
-        const userInfo = document.getElementById('userInfo');
-        const userInfoReportes = document.getElementById('userInfoReportes');
-        
-        const textoUsuario = `${this.user.nombre} (${this.user.rol})`;
-        
-        if (userInfo) userInfo.textContent = textoUsuario;
-        if (userInfoReportes) userInfoReportes.textContent = textoUsuario;
+    if (this.token) {
+        this.loadDashboard();
+        this.startAutoRefresh();
     }
 }
 
-// 🎪 MOSTRAR/OCULTAR ELEMENTOS
-mostrarOcultarElemento(elementId, mostrar) {
-    const elemento = document.getElementById(elementId);
-    if (elemento) {
-        elemento.style.display = mostrar ? 'block' : 'none';
-    }
-}
 
-// ⚙️ MOSTRAR CONFIGURACIÓN (SOLO ADMIN)
-showConfiguracion() {
-    if (!this.esAdmin()) {
-        this.showNotification('No tiene permisos de administrador', 'error');
-        return;
-    }
-    
-    document.getElementById('dashboardScreen').classList.remove('active');
-    document.getElementById('reportesScreen').classList.remove('active');
-    document.getElementById('configuracionScreen').classList.add('active');
-    
-    this.cargarConfiguracion();
-    this.cargarCamposFormulario();
-    this.cargarTarifas();
-}
 
     // 🔐 MANEJO DE AUTENTICACIÓN
     checkAuth() {
@@ -173,7 +172,16 @@ actualizarFormularioConfiguracion(configuraciones) {
         try {
             const data = await this.apiCall('/auth/profile');
             this.user = data.data.user;
+            
+            console.log('👤 Usuario cargado:', {
+                nombre: this.user.nombre,
+                email: this.user.email,
+                rol: this.user.rol,
+                esAdmin: this.esAdmin()
+            });
+            
             this.updateUserInfo();
+            this.actualizarInterfazPorRol(); // 👈 AGREGAR ESTA LÍNEA
         } catch (error) {
             this.logout();
         }
@@ -810,10 +818,27 @@ showReportes() {
     this.cargarEstadisticasRapidas();
 }
 
+// ⚙️ MOSTRAR CONFIGURACIÓN (SOLO ADMIN)
+showConfiguracion() {
+    if (!this.esAdmin()) {
+        this.showNotification('No tiene permisos de administrador', 'error');
+        return;
+    }
+    
+    document.getElementById('dashboardScreen').classList.remove('active');
+    document.getElementById('reportesScreen').classList.remove('active');
+    document.getElementById('configuracionScreen').classList.add('active');
+    
+    this.cargarConfiguracion();
+    this.cargarCamposFormulario();
+    this.cargarTarifas();
+}
+
 showDashboard() {
     document.getElementById('loginScreen').classList.remove('active');
     document.getElementById('dashboardScreen').classList.add('active');
     document.getElementById('reportesScreen').classList.remove('active');
+    document.getElementById('configuracionScreen').classList.remove('active'); // Hide config screen on dashboard show
     this.updateUserInfo();
 }
 
