@@ -114,6 +114,12 @@ body {
     align-items: center;
 }
 
+.header-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
 .header-left h1 {
     color: var(--primary);
     font-size: 1.8em;
